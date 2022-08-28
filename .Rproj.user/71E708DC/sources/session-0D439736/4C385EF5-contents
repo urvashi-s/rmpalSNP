@@ -1,0 +1,141 @@
+getwd()
+setwd("/Users/urvashisingh/Documents/5PrimeSciences")
+
+# Install required packages from CRAN
+install.packages('data.table')
+install.packages('LDlinkR')
+install.packages("qqman")
+
+library(data.table)
+library(readr)
+library(LDlinkR)
+library(qqman)
+library(dplyr)
+library(ggplot2)
+
+# GWAS_data = read_tsv("fn2stu.MAF0_.005.pos_.out_", col_names = TRUE)
+# head(GWAS_data)
+# class(GWAS_data)
+
+myData <- fread("fn2stu.MAF0_.005.pos_.out_", header=TRUE)
+myData[, .N]
+head(myData)
+
+# put the invalid data into another data table
+invalid_data <- myData[ !(rs_number %like% "^rs"),] 
+#head(invalid_data)
+invalid_data[, .N]
+# answer 2a: [1] 1116848
+
+# remove rows without a valid rsid number and save the cleaned data
+valid_data <- myData[ (rs_number %like% "^rs"),] 
+# head(valid_data)
+# valid_data[, .N]
+
+# 
+# head(myData)
+# 
+# ?setnames
+# ?head
+
+setnames(myData, "p-value", "p_value")
+head(myData)
+
+sig_SNPs <- myData[ (p_value <= 5e-08),]
+head(sig_SNPs)
+sig_SNPs[, .N]
+# answer 2b: [1] 926
+
+
+# Identify the most significant SNP in the 500 Kb region centred on chromosome 7 at position 121012647.
+# subset the rows pertaining to chromosome 7
+chr7_data <- myData[chromosome == 7]
+head(chr7_data)
+chr7_data[, .N]
+
+# subset the rows pertaining to chromosome 7 and centered 500kb at position 12102647
+# to center around position 121012647, we must go 2.5e+05 in both directions of this position i.e. (<- 121012647 ->)
+
+chr7_data1 <- myData[chromosome == 7 & (position >= 120762647 & position <= 121262647)]
+head(chr7_data1)
+chr7_data1[, .N]
+
+chr7_data1[which.min(chr7_data1[,p_value]),]
+# answer 3: rs_number = rs3779381
+
+
+# using the API to get LD statistics, output saved in a txt file
+LDproxy("rs3779381", pop="EUR", token = "a88b16a96cbf", file = "LDproxy_output.txt")
+
+
+# qq_input <- chr7_data[ , c("rs_number", "chromosome", "position", "p_value")]
+# head(qq_input)
+# class(qq_input)
+# 
+# setnames(qq_input, old = c("rs_number", "chromosome", "position", "p_value"), new = c("SNP", "CHR", "BP", "P"))
+# head(qq_input)
+# manhattan(qq_input, chr="CHR", bp="BP", snp="SNP", p="P")
+# 
+# manhattan(myData, chr="chromosome", bp="position", snp="rs_number", p="p_value")
+
+LD_data <- fread("LDproxy_output.txt", header=TRUE)
+head(LD_data)
+
+setnames(LD_data, "RS_Number", "rs_number")
+  
+new_LD <- merge(LD_data, chr7_data1[, c("rs_number", "_-log10_p-value", "position")], by="rs_number")
+head(new_LD)
+
+new_LD <- new_LD %>% 
+  mutate(mb_pos = position / 1.0e+06)
+head(new_LD)
+
+setnames(new_LD, "_-log10_p-value", "log10_pval")
+head(new_LD)
+
+# bwidth <- new_LD$Distance
+# head(bwidth)
+# 
+# 
+# p<-ggplot(new_LD, aes(x=position, y=log10_pval)) + 
+#   geom_dotplot(binwidth=0.15, stackdir="up", binaxis='y')
+# p
+
+
+#plot_colors <-ifelse(new_LD$R2>=0.8, "red3", ifelse(new_LD$R2<0.8 & new_LD$R2>= 0.6, "darkgoldenrod1", ifelse(new_LD$R2<0.6 & new_LD$R2>= 0.4, "chartreuse3", ifelse(new_LD$R2<0.2 & new_LD$R2>= 0, "darkblue", "cyan3"))))
+
+#cols <- c("red3", "darkgoldenrod1", "chartreuse3", "darkblue", "cyan3")
+
+new_LD %>%
+  ggplot(aes(x=mb_pos, y=log10_pval)) + 
+  geom_point(aes(colour = R2)) +
+  scale_colour_stepsn(colours = hcl.colors(5,palette = "viridis"), n.breaks=6) +
+  theme_classic() +
+  xlab("Position on chr7 (Mb)") + ylab("-log10(p-value)") +
+  stat_summary_bin(fun = mean, na.rm = TRUE, aes(group = 1),
+               geom = "line", color = "dodgerblue", 
+               size = .75)
+
+
+
+plot(new_LD$mb_pos, new_LD$log10_pval,
+     xlab = "Position on chr7 (Mb)", ylab = "-log10(p-value)", col=plot_colors, lwd=3,
+     pch = 19, frame = TRUE)
+
+# # create a new df with the columns SNP, CHR, BP, and P to use the qqman package
+# qq_input1 <- chr7_data1[ , c("rs_number", "chromosome", "position", "p_value")]
+# head(qq_input)
+# class(qq_input)
+# 
+# ?setnames
+# 
+# setnames(qq_input1, old = c("rs_number", "chromosome", "position", "p_value"), new = c("SNP", "CHR", "BP", "P"))
+# head(qq_input1)
+# 
+# manhattan(qq_input1, chr="CHR", bp="BP", snp="SNP", p="P", logp=TRUE)
+
+head(gwasResults)
+manhattan(gwasResults, chr="CHR", bp="BP", snp="SNP", p="P" )
+
+######################### CLEAN UP #########################
+rm(list=ls()) 

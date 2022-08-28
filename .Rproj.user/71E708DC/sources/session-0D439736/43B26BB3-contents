@@ -1,0 +1,73 @@
+install.packages("devtools")
+install.packages("roxygen2")
+
+getwd()
+setwd("/Users/urvashisingh/Documents/5PrimeSciences")
+library(data.table)
+library(readr)
+library(LDlinkR)
+library(qqman)
+library(dplyr)
+library(ggplot2)
+
+testData <- fread("output.txt", header=TRUE)
+testData[, .N]
+
+
+# SNPs with A/T or G/C alleles are known as palindromic SNPs, because their alleles 
+# are represented by the same pair of letters on the forward and reverse strands. 
+# Write a function that detects SNPs palindromic with palindromic alleles (A/T, T/A, G/C, or C/G) 
+# and removes them if their allele frequency is within a specific threshold around the allele frequency of 0.5.
+
+head(testData)
+
+palindromes <- testData[ ((reference_allele == "A" & other_allele == "T") | (reference_allele == "T" & other_allele == "A") | (reference_allele == "G" & other_allele == "C") | (reference_allele == "C" & other_allele == "G")), ]
+head(palindromes)
+testData[, .N]
+
+rm_pal <- function(testData, t) {
+  if (t > 0.5){
+    print("Invalid input (t > 0.5 not permitted). Change threshold.")
+    stop()
+  } else if (t == 0.5) {
+    print("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
+    stop()
+  } else if (t < 0.5) {
+    lim_upper = 0.5 + t
+    lim_lower = 0.5 - t
+    # for (alleles in [["A", "T"], ["T", "A"], ["G", "C"], ["C", "G"]]) {
+    #   temp <- testData[("reference_allele" == alleles[[1]] & "other_allele" == alleles[[2]])])
+    #   pal_df_list <- append(pal_df_list, temp)
+    # }
+    # palindromes_AT = testData[((reference_allele == "A" & other_allele == "T") | (reference_allele == "T" & other_allele == "A")), ]
+    # palindromes_GC = testData[((reference_allele == "G" & other_allele == "C") | (reference_allele == "C" & other_allele == "G")), ]
+    # #palindromes <- bind_rows(palindromes_AT, palindromes_GC)
+    palindromes <- testData[ (("reference_allele" == "A" & "other_allele" == "T") | ("reference_allele" == "T" & "other_allele" == "A") | ("reference_allele" == "G" & "other_allele" == "C") | ("reference_allele" == "C" & "other_allele" == "G")), ]
+    palindromes_rem <- palindromes[ ("eaf" >= lim_lower & "eaf" <= lim_upper), ]
+    count <- palindromes_rem[, .N]
+    cat(count, "SNPs are palindromic and are within the threshold of", t, "and have been removed.")
+    finalData <- anti_join(testData, palindromes_rem, by = "rs_number")
+  }
+  return(finalData)
+}
+
+head(testData)
+final <- rm_pal(testData, 0.1)
+head(final)
+final[, .N]
+
+colnames(testData)
+
+vec <- testData[, reference_allele]
+print(head(vec))
+
+library(devtools)
+install_github("urvashi-s/rmpalindrome")
+library(rmpalindrome)
+?rmpalindrome
+
+install.packages("rmpalsnp")
+library(rmpalsnp)
+final_pkg <- rmpalsnp(testData, 0.1)
+
+  ?rmpalsnp

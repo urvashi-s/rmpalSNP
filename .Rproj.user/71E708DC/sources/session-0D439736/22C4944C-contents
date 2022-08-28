@@ -1,0 +1,68 @@
+# myfunc <- function(testData, t) {
+#   if (t > 0.5){
+#     print("Invalid input (t > 0.5 not permitted). Change threshold.")
+#     stop()
+#   } else if (t == 0.5) {
+#     print("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
+#     stop()
+#   } else if (t < 0.5) {
+#     lim_upper = 0.5 + t
+#     lim_lower = 0.5 - t
+#     palindromes_AT = testData[((reference_allele == "A" & other_allele == "T") | (reference_allele == "T" & other_allele == "A")), ]
+#     palindromes_GC = testData[((reference_allele == "G" & other_allele == "C") | (reference_allele == "C" & other_allele == "G")), ]
+#     palindromes <- bind_rows(palindromes_AT, palindromes_GC)
+#     # palindromes <- testData[((reference_allele == "G" & other_allele == "C")), ]
+#     print(head(palindromes))
+#     palindromes_rem <- palindromes[ (eaf >= lim_lower & eaf <= lim_upper), ]
+#     count <- palindromes_rem[, .N]
+#     cat(count, "SNPs are palindromic and are within the threshold of", t, "and have been removed.")
+#     finalData <- anti_join(testData, palindromes_rem, by = "rs_number")
+#   }
+#   return(finalData)
+# }
+
+myfunc <- function(testData, t) {
+  if (t > 0.5){
+    print("Invalid input (t > 0.5 not permitted). Change threshold.")
+    stop()
+  } else if (t == 0.5) {
+    print("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
+    stop()
+  } else if (t < 0.5) {
+    lim_upper = 0.5 + t
+    lim_lower = 0.5 - t
+    palindromes_AT <- testData[ (( reference_allele == "A" & other_allele == "T") | (reference_allele == "T" & other_allele == "A")), ]
+    palindromes_GC <- testData[ (( reference_allele == "G" & other_allele == "C") | (reference_allele == "C" & other_allele == "G")), ]
+    print(head(palindromes_AT))
+    palindromes <- bind_rows(palindromes_AT, palindromes_GC)   
+    print(class(palindromes))
+    print(head(palindromes))
+    palindromes_rem <- palindromes[ (eaf >= lim_lower & eaf <= lim_upper), ]
+    print(head(palindromes_rem))
+    count <- palindromes_rem[, .N]
+    cat(count, "SNPs are palindromic and are within the threshold of", t, "and have been removed.")
+    finalData <- anti_join(testData, palindromes_rem, by = "rs_number")
+  }
+  return(finalData)
+}
+
+result <- myfunc(testData, 0.1)
+#("reference_allele" == "A" & "other_allele" == "T") | ("reference_allele" == "T" & "other_allele" == "A") | 
+## | ("reference_allele" == "C" & "other_allele" == "G"))
+getwd()
+setwd("/Users/urvashisingh/Documents/5PrimeSciences")
+library(data.table)
+library(readr)
+library(LDlinkR)
+library(qqman)
+library(dplyr)
+library(ggplot2)
+
+testData <- fread("func_test_dat.txt", header=TRUE)
+testData[, .N]
+head(testData)
+
+
+
+
+

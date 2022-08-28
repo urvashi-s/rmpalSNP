@@ -1,0 +1,10 @@
+Package: rmpalsnp
+Version: 0.1
+Date: 2022-08-28
+Title: Urvashi S RM Palindromic SNPs within threshold
+Description: Function that detects SNPs palindromic with palindromic alleles and removes those within a specific threshold t.
+Author: Urvashi Singh
+Maintainer: Urvashi Singh <urvashi.singh@mail.mcgill.ca>
+RoxygenNote: 7.2.1
+Encoding: UTF-8
+Depends: data.table

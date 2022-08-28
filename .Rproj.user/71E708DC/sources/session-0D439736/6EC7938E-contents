@@ -1,0 +1,29 @@
+#' Remove Palindromic SNPs
+#'
+#' Detect SNPs palindromic with palindromic alleles and remove them if their allele frequency is within a specific threshold around the allele frequency of 0.5.
+#' @param testData data.frame or data.table containing "reference_allele" and "other_allele" columns, each column contains single character (either A, T, G, or C). Note that the function uses rs_number to remove the SNPs from the original data.frame, making "rs_number" a required column.
+#' @param t Threshold value >0 & <=0.5
+#' @return data.table or data.frame with removed palindromic SNPs within 0.5 +/- threshold t (note that function must be called and assigned to a data.frame, see examples)
+#' @examples 
+#' result_df <- rmpalindrome(input_df, t);
+#' result_df <- rmpalindrome(myData, 0.2);
+#' @import dplyr
+#' @export
+rmpalindrome <- function(testData, t) {
+  if (t > 0.5){
+    print("Invalid input (t > 0.5 not permitted). Change threshold.")
+    stop()
+  } else if (t == 0.5) {
+    print("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
+    stop()
+  } else if (t < 0.5) {
+    lim_upper = 0.5 + t
+    lim_lower = 0.5 - t
+    palindromes <- testData[ ((reference_allele == "A" & other_allele == "T") | (reference_allele == "T" & other_allele == "A") | (reference_allele == "G" & other_allele == "C") | (reference_allele == "C" & other_allele == "G")), ]
+    palindromes_rem <- palindromes[ (eaf >= lim_lower & eaf <= lim_upper), ]
+    count <- palindromes_rem[, .N]
+    cat(count, "SNPs are palindromic and are within the threshold of", t, "and have been removed.")
+    finalData <- anti_join(testData, palindromes_rem, by = "rs_number")
+  }
+  return(finalData)
+}
