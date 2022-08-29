@@ -7,4 +7,10 @@ Author: Urvashi Singh
 Maintainer: Urvashi Singh <urvashi.singh@mail.mcgill.ca>
 RoxygenNote: 7.2.1
 Encoding: UTF-8
-Depends: data.table
+Depends:
+    data.table
+Imports: 
+    data.table
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

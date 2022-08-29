@@ -1,0 +1,17 @@
+# Install the released version from CRAN
+install.packages("testthat")
+
+# Or the development version from GitHub:
+# install.packages("devtools")
+devtools::install_github("r-lib/testthat")
+
+install.packages("usethis")
+library(usethis)
+
+getwd()
+setwd("/Users/urvashisingh/Documents/5PrimeSciences/Function/rmpalSNP")
+
+usethis::use_testthat(3)
+
+devtools::test()
+

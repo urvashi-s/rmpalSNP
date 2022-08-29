@@ -10,13 +10,14 @@
 #' @import dplyr
 #' @import data.table
 #' @export 
+
+.datatable.aware = TRUE
+
 rmpalsnp <- function(testData, t) {
   if (t > 0.5){
-    print("Invalid input (t > 0.5 not permitted). Change threshold.")
-    stop()
+    stop("Invalid input (t > 0.5 not permitted). Change threshold.")
   } else if (t == 0.5) {
-    print("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
-    stop()
+    stop("Invalid input, as all palindromes will be deleted within 0.0 to 1.0 range. Change threshold.")
   } else if (t < 0.5) {
     lim_upper = 0.5 + t
     lim_lower = 0.5 - t

@@ -62,9 +62,9 @@ vec <- testData[, reference_allele]
 print(head(vec))
 
 library(devtools)
-install_github("urvashi-s/rmpalindrome")
-library(rmpalindrome)
-?rmpalindrome
+install_github("urvashi-s/rmpalSNP")
+library(rmpalsnp)
+?rmpalsnp
 
 install.packages("rmpalsnp")
 library(rmpalsnp)
